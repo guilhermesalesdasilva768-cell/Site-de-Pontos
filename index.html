@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Sistema de Ponto</title>
+  <style>
+    /* Seu CSS existente permanece o mesmo */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-container h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn-login:hover {
+      background: #0056b3;
+    }
+
+    .register-link {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .register-link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .register-link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Sistema de Ponto</h2>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="text" id="email" name="email" required />
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" required />
+      </div>
+      <button type="submit" class="btn-login">Entrar</button>
+    </form>
+    <div class="register-link">
+     Primeiro acesso? <a href="cadastro.html">Cadastre-se</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Impede o envio padrão do formulário
+
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+
+      fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, senha })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'sucesso') {
+          // Armazenar os dados do usuário (especialmente o ID) para uso posterior
+          localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
+          alert(data.mensagem);
+          window.location.href = 'dashboard.html'; // Redireciona para o dashboard de ponto
+        } else {
+          alert('Erro no login: ' + data.mensagem);
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Ocorreu um erro ao tentar fazer login.');
+      });
+    });
+
+    function solicitarAcesso() {
+      const nome = prompt("Para solicitar acesso, digite seu nome completo:");
+      if (!nome) {
+        alert("Nome é obrigatório para o cadastro.");
+        return;
+      }
+      const email = prompt("Agora, digite seu e-mail:");
+      if (!email) {
+        alert("E-mail é obrigatório para o cadastro.");
+        return;
+        }
+      const senha = prompt("Por fim, crie uma senha para seu acesso:");
+      if (!senha) {
+        alert("Senha é obrigatória para o cadastro.");
+        return;
+      }
+
+      fetch('http://localhost:3000/api/cadastrar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nome, email, senha })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.mensagem);
+        if (data.status === 'sucesso') {
+          // Opcional: já logar o usuário após o cadastro
+          localStorage.setItem('usuarioLogado', JSON.stringify({ id: data.usuario_id, nome: nome, email: email, moedas: 0 }));
+          window.location.href = 'dashboard.html';
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao cadastrar:', error);
+        alert('Ocorreu um erro ao tentar cadastrar.');
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro | Sistema de Ponto</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        .cadastro-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .cadastro-container h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .btn-cadastro {
+            width: 100%;
+            padding: 12px;
+            background: #28a745; /* Botão verde para cadastro */
+            border: none;
+            color: white;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-cadastro:hover {
+            background: #218838;
+        }
+        .login-link {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        .login-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: none; /* Inicia oculto */
+        }
+    </style>
+</head>
+<body>
+    <div class="cadastro-container">
+        <h2>Cadastro de Usuário</h2>
+        <form id="cadastroForm">
+            <div class="form-group">
+                <label for="nomeCadastro">Nome:</label>
+                <input type="text" id="nomeCadastro" name="nome" required>
+                <div class="error-message" id="nomeError">O nome é obrigatório e não pode conter apenas espaços.</div>
+            </div>
+            <div class="form-group">
+                <label for="emailCadastro">E-mail:</label>
+                <input type="email" id="emailCadastro" name="email" required>
+                <div class="error-message" id="emailError">Por favor, insira um e-mail válido.</div>
+            </div>
+            <div class="form-group">
+                <label for="senhaCadastro">Senha:</label>
+                <input type="password" id="senhaCadastro" name="senha" required>
+                <div class="error-message" id="senhaError">A senha deve ter pelo menos 6 caracteres.</div>
+            </div>
+            <button type="submit" class="btn-cadastro">Cadastrar</button>
+        </form>
+        <div class="login-link">
+            Já tem conta? <a href="index.html">Fazer Login</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('cadastroForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            // Ocultar mensagens de erro anteriores
+            document.getElementById('nomeError').style.display = 'none';
+            document.getElementById('emailError').style.display = 'none';
+            document.getElementById('senhaError').style.display = 'none';
+
+            const nome = document.getElementById('nomeCadastro').value.trim(); // .trim() remove espaços em branco do início e fim
+            const email = document.getElementById('emailCadastro').value.trim();
+            const senha = document.getElementById('senhaCadastro').value; // .trim() não aplicado intencionalmente para senhas, mas pode ser adicionado se necessário
+
+            // --- LINHAS DE DEBUG: VERIFICAR VALORES NO CONSOLE ---
+            console.log('--- Debug de Cadastro ---');
+            console.log('Valor capturado para Nome:', nome);
+            console.log('Valor capturado para Email:', email);
+            console.log('Valor capturado para Senha:', senha);
+            console.log('Payload que será enviado:', JSON.stringify({ nome, email, senha }));
+            console.log('-------------------------');
+            // --- FIM DAS LINHAS DE DEBUG ---
+
+            let isValid = true;
+
+            // Validação de Nome
+            if (!nome) {
+                document.getElementById('nomeError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validação de E-mail
+            // Regex para validar formato básico de e-mail
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validação de Senha (mínimo 6 caracteres)
+            if (!senha || senha.length < 6) {
+                document.getElementById('senhaError').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                // Se alguma validação falhou, não envia a requisição
+                alert("Por favor, corrija os erros no formulário.");
+                return; // Impede que o fetch seja executado
+            }
+
+            // Se todas as validações passarem, envia a requisição para o backend
+            fetch('http://localhost:3000/api/cadastrar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nome, email, senha })
+            })
+            .then(response => {
+                // --- TRATAMENTO DE ERROS MELHORADO: Tenta ler JSON, se falhar, lê como texto puro ---
+                if (!response.ok) { // Se a resposta não for OK (ex: status 400, 409, 500)
+                    return response.json().then(errorData => {
+                        // Tenta ler como JSON. Se tiver 'mensagem', usa.
+                        throw new Error(errorData.mensagem || 'Erro desconhecido do servidor (resposta JSON inválida ou sem mensagem).');
+                    }).catch(jsonError => {
+                        // Se falhar a leitura como JSON (ex: servidor enviou texto puro), tenta ler como texto
+                        console.error('Falha ao ler resposta como JSON, tentando como texto:', jsonError);
+                        return response.text().then(text => {
+                            throw new Error(text || 'Erro desconhecido do servidor (resposta de texto pura).');
+                        });
+                    });
+                }
+                return response.json(); // Se a resposta for OK (ex: status 200), lê como JSON
+            })
+            .then(data => {
+                if (data.status === 'sucesso') {
+                    alert(data.mensagem + ' Você será redirecionado para a tela de login.');
+                    window.location.href = 'index.html'; // Redireciona para a tela de login
+                } else {
+                    // Isso pode acontecer se o servidor retornar 200 OK, mas com status: 'erro' (menos comum)
+                    alert('Erro: ' + data.mensagem);
+                }
+            })
+            .catch(error => {
+                // Este catch pega erros de rede ou erros lançados nos .then() anteriores
+                console.error('Erro geral no cadastro:', error); // Loga o erro completo no console
+                alert('Ocorreu um erro ao tentar cadastrar: ' + error.message);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Sistema de Ponto</title>
+  <style>
+    /* Seu CSS existente permanece o mesmo */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: #e9ecef;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .tab-btn.active {
+      background: #007bff;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .clock {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .btn-ponto {
+      display: block;
+      margin: 0 auto 30px auto;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .log-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .log-list li {
+      background: #f8f9fa;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    .btn-ajuste {
+      background-color: #ffc107;
+      color: #333;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #mensagemConfirmacao {
+      display: none;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 6px;
+      text-align: center;
+      transition: opacity 0.5s;
+    }
+
+    /* Estilo para a mensagem de confirmação do ponto */
+    .mensagem-ponto-confirmacao {
+        display: none; /* Inicia oculto */
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #d4edda; /* Verde claro para sucesso */
+        color: #155724; /* Texto verde escuro */
+        border: 1px solid #c3e6cb;
+        border-radius: 6px;
+        text-align: center;
+        opacity: 0; /* Para transição de fade-in/out */
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    .mensagem-ponto-erro {
+        display: none; /* Inicia oculto */
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f8d7da; /* Vermelho claro para erro */
+        color: #721c24; /* Texto vermelho escuro */
+        border: 1px solid #f5c6cb;
+        border-radius: 6px;
+        text-align: center;
+        opacity: 0; /* Para transição de fade-in/out */
+        transition: opacity 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sistema de Ponto</h1>
+    <p id="welcomeMessage"></p>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="abrirAba('ponto')">Bater Ponto</button>
+      <button class="tab-btn" onclick="abrirAba('ajuste')">Solicitar Ajuste</button>
+      <button class="tab-btn" onclick="goToGamification()">Dashboard Gamificação</button>
+    </div>
+
+    <div class="tab-content active" id="aba-ponto">
+      <div class="clock" id="relogio">--:--:--</div>
+      <button class="btn-ponto" onclick="baterPonto()">Bater Ponto</button>
+
+      <div id="mensagemConfirmacaoPonto" class="mensagem-ponto-confirmacao"></div>
+
+      <h3>Histórico de Pontos</h3>
+      <ul class="log-list" id="logList"></ul>
+    </div>
+
+    <div class="tab-content" id="aba-ajuste">
+      <h3>Solicitação de Ajuste</h3>
+      <div class="form-group">
+        <label for="horarioEntrada">Horário de Entrada</label>
+        <input type="text" id="horarioEntrada" placeholder="--:--" maxlength="5" inputmode="numeric" />
+      </div>
+      <div class="form-group">
+        <label for="horarioSaida">Horário de Saída</label>
+        <input type="text" id="horarioSaida" placeholder="--:--" maxlength="5" inputmode="numeric" />
+      </div>
+      <div class="form-group">
+        <label for="motivoAjuste">Motivo do Ajuste</label>
+        <textarea id="motivoAjuste" rows="4" placeholder="Descreva o motivo..."></textarea>
+      </div>
+      <button class="btn-ajuste" onclick="enviarSolicitacao()">Enviar Solicitação</button>
+
+      <div id="mensagemConfirmacao">✅ Solicitação enviada com sucesso!</div>
+    </div>
+  </div>
+
+  <script>
+    let usuarioLogado = null;
+
+    // Função para verificar o login ao carregar a página
+    window.onload = function() {
+      const usuarioString = localStorage.getItem('usuarioLogado');
+      if (usuarioString) {
+        usuarioLogado = JSON.parse(usuarioString);
+        document.getElementById('welcomeMessage').textContent = `Olá, ${usuarioLogado.nome}!`;
+        // Carregar histórico de pontos apenas se o usuário estiver logado
+        carregarHistoricoPontos();
+      } else {
+        alert('Você não está logado. Por favor, faça login.');
+        window.location.href = 'index.html'; // Redireciona para a página de login
+      }
+      aplicarMascaraHorario(document.getElementById("horarioEntrada"));
+      aplicarMascaraHorario(document.getElementById("horarioSaida"));
+      atualizarRelogio();
+    };
+
+    // FUNÇÃO MELHORADA PARA OBTER HORÁRIO DE BRASÍLIA
+    function getHoraBrasilia() {
+      return new Date().toLocaleString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function atualizarRelogio() {
+      document.getElementById("relogio").textContent = getHoraBrasilia();
+    }
+
+    setInterval(atualizarRelogio, 1000);
+
+    function baterPonto() {
+        if (!usuarioLogado || !usuarioLogado.id) {
+            alert("Erro: Usuário não logado ou ID do usuário não encontrado.");
+            return;
+        }
+
+        const msgPontoConfirmacao = document.getElementById("mensagemConfirmacaoPonto");
+        msgPontoConfirmacao.classList.remove('mensagem-ponto-confirmacao', 'mensagem-ponto-erro'); // Limpa estilos anteriores
+        msgPontoConfirmacao.style.opacity = 0; // Inicia a opacidade em 0 para a transição
+        msgPontoConfirmacao.style.display = "none"; // Oculta antes da nova exibição
+
+        fetch("http://localhost:3000/api/ponto", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ usuario_id: usuarioLogado.id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'sucesso') {
+                msgPontoConfirmacao.textContent = "✅ Ponto registrado e " + data.moedasAdicionadas + " moedas adicionadas!";
+                msgPontoConfirmacao.classList.add('mensagem-ponto-confirmacao');
+                msgPontoConfirmacao.style.display = "block";
+                setTimeout(() => {
+                    msgPontoConfirmacao.style.opacity = 1;
+                }, 10); // Pequeno delay para a transição
+
+                usuarioLogado.moedas = (usuarioLogado.moedas || 0) + data.moedasAdicionadas;
+                localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+                carregarHistoricoPontos();
+
+            } else {
+                msgPontoConfirmacao.textContent = "❌ Erro ao registrar ponto: " + data.mensagem;
+                msgPontoConfirmacao.classList.add('mensagem-ponto-erro');
+                msgPontoConfirmacao.style.display = "block";
+                setTimeout(() => {
+                    msgPontoConfirmacao.style.opacity = 1;
+                }, 10); // Pequeno delay para a transição
+            }
+
+            // Esconder a mensagem após alguns segundos
+            setTimeout(() => {
+                msgPontoConfirmacao.style.opacity = 0;
+                setTimeout(() => {
+                    msgPontoConfirmacao.style.display = "none";
+                }, 500); // Espera a transição terminar antes de ocultar
+            }, 5000); // Mensagem visível por 5 segundos
+        })
+        .catch(err => {
+            msgPontoConfirmacao.textContent = "❌ Erro ao registrar ponto. Verifique o console para mais detalhes.";
+            msgPontoConfirmacao.classList.add('mensagem-ponto-erro');
+            msgPontoConfirmacao.style.display = "block";
+            setTimeout(() => {
+                msgPontoConfirmacao.style.opacity = 1;
+            }, 10); // Pequeno delay para a transição
+            console.error(err);
+
+            // Esconder a mensagem de erro após alguns segundos
+            setTimeout(() => {
+                msgPontoConfirmacao.style.opacity = 0;
+                setTimeout(() => {
+                    msgPontoConfirmacao.style.display = "none";
+                }, 500);
+            }, 5000);
+        });
+    }
+
+    function carregarHistoricoPontos() {
+      if (!usuarioLogado || !usuarioLogado.id) {
+        console.log("Usuário não logado, não é possível carregar o histórico de pontos.");
+        return;
+      }
+
+      fetch(`http://localhost:3000/api/pontos/${usuarioLogado.id}`)
+        .then(response => response.json())
+        .then(data => {
+          const logList = document.getElementById('logList');
+          logList.innerHTML = ''; // Limpa a lista existente
+          if (data.status === 'sucesso' && data.pontos.length > 0) {
+            data.pontos.forEach(ponto => {
+              const li = document.createElement('li');
+              li.textContent = `Ponto batido em: ${ponto.data} às ${ponto.hora}`;
+              logList.appendChild(li);
+            });
+          } else {
+            const li = document.createElement('li');
+            li.textContent = 'Nenhum ponto registrado ainda.';
+            logList.appendChild(li);
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao carregar histórico de pontos:', error);
+          const logList = document.getElementById('logList');
+          logList.innerHTML = '<li>Erro ao carregar histórico.</li>';
+        });
+    }
+
+    function enviarSolicitacao() {
+      const entrada = document.getElementById("horarioEntrada").value;
+      const saida = document.getElementById("horarioSaida").value;
+      const motivo = document.getElementById("motivoAjuste").value.trim();
+      const msg = document.getElementById("mensagemConfirmacao");
+
+      const regexHora = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+      if (!regexHora.test(entrada) || !regexHora.test(saida) || motivo === "") {
+        alert("Preencha corretamente os horários no formato HH:MM e informe o motivo.");
+        return;
+      }
+
+      // Lógica para enviar solicitação de ajuste (pode ser outra rota no backend)
+      // Por enquanto, apenas mostra a mensagem de confirmação
+      msg.style.display = "block";
+      msg.style.opacity = 1;
+
+      setTimeout(() => {
+        msg.style.opacity = 0;
+        setTimeout(() => {
+          msg.style.display = "none";
+        }, 500);
+      }, 3000);
+
+      document.getElementById("horarioEntrada").value = "";
+      document.getElementById("horarioSaida").value = "";
+      document.getElementById("motivoAjuste").value = "";
+    }
+
+    function abrirAba(aba) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (aba === 'ponto') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('aba-ponto').classList.add('active');
+        carregarHistoricoPontos(); // Garante que o histórico seja atualizado ao abrir a aba
+      } else if (aba === 'ajuste') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('aba-ajuste').classList.add('active');
+        document.getElementById("horarioEntrada").value = "";
+        document.getElementById("horarioSaida").value = "";
+        document.getElementById("motivoAjuste").value = "";
+        document.getElementById("mensagemConfirmacao").style.display = "none";
+      }
+    }
+
+    function aplicarMascaraHorario(input) {
+      input.addEventListener('input', function () {
+        let valor = input.value.replace(/\D/g, '');
+        if (valor.length >= 3) {
+          valor = valor.slice(0, 4);
+          valor = valor.replace(/(\d{2})(\d{1,2})/, '$1:$2');
+        }
+        input.value = valor;
+      });
+    }
+
+    // Função para navegar para o dashboard de gamificação
+    function goToGamification() {
+        // Redireciona para o index.html da gamificação.
+        // O index.html da gamificação precisará carregar os dados do usuário do localStorage
+        window.location.href = '../site_gamificacao/index.html'; // Ajuste o caminho se necessário
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
