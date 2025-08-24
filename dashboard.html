@@ -240,16 +240,16 @@
 
     setInterval(atualizarRelogio, 1000);
 
-    function baterPonto() {
+   function baterPonto() {
         if (!usuarioLogado || !usuarioLogado.id) {
             alert("Erro: Usuário não logado ou ID do usuário não encontrado.");
             return;
         }
 
         const msgPontoConfirmacao = document.getElementById("mensagemConfirmacaoPonto");
-        msgPontoConfirmacao.classList.remove('mensagem-ponto-confirmacao', 'mensagem-ponto-erro'); // Limpa estilos anteriores
-        msgPontoConfirmacao.style.opacity = 0; // Inicia a opacidade em 0 para a transição
-        msgPontoConfirmacao.style.display = "none"; // Oculta antes da nova exibição
+        msgPontoConfirmacao.classList.remove('mensagem-ponto-confirmacao', 'mensagem-ponto-erro');
+        msgPontoConfirmacao.style.opacity = 0;
+        msgPontoConfirmacao.style.display = "none";
 
         fetch("http://localhost:3000/api/ponto", {
             method: "POST",
@@ -266,10 +266,28 @@
                 msgPontoConfirmacao.style.display = "block";
                 setTimeout(() => {
                     msgPontoConfirmacao.style.opacity = 1;
-                }, 10); // Pequeno delay para a transição
+                }, 10);
 
-                usuarioLogado.moedas = (usuarioLogado.moedas || 0) + data.moedasAdicionadas;
+                // ➡️ CORRIGIDO: Agora o localStorage é atualizado e o backend é notificado.
+                usuarioLogado.bip = (usuarioLogado.bip || 0) + data.moedasAdicionadas;
                 localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+                
+                // ✅ NOVO: Chamada para atualizar a pontuação no backend
+                fetch("http://localhost:3000/api/ranking/pontos", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ id: usuarioLogado.id, bip: usuarioLogado.bip })
+                })
+                .then(res => res.json())
+                .then(rankingData => {
+                    console.log('Ranking atualizado com sucesso:', rankingData.mensagem);
+                })
+                .catch(err => {
+                    console.error('Erro ao atualizar ranking:', err);
+                });
+
                 carregarHistoricoPontos();
 
             } else {
@@ -278,16 +296,15 @@
                 msgPontoConfirmacao.style.display = "block";
                 setTimeout(() => {
                     msgPontoConfirmacao.style.opacity = 1;
-                }, 10); // Pequeno delay para a transição
+                }, 10);
             }
-
-            // Esconder a mensagem após alguns segundos
+            
             setTimeout(() => {
                 msgPontoConfirmacao.style.opacity = 0;
                 setTimeout(() => {
                     msgPontoConfirmacao.style.display = "none";
-                }, 500); // Espera a transição terminar antes de ocultar
-            }, 5000); // Mensagem visível por 5 segundos
+                }, 500);
+            }, 5000);
         })
         .catch(err => {
             msgPontoConfirmacao.textContent = "❌ Erro ao registrar ponto. Verifique o console para mais detalhes.";
@@ -295,10 +312,9 @@
             msgPontoConfirmacao.style.display = "block";
             setTimeout(() => {
                 msgPontoConfirmacao.style.opacity = 1;
-            }, 10); // Pequeno delay para a transição
+            }, 10);
             console.error(err);
 
-            // Esconder a mensagem de erro após alguns segundos
             setTimeout(() => {
                 msgPontoConfirmacao.style.opacity = 0;
                 setTimeout(() => {
@@ -308,35 +324,38 @@
         });
     }
 
-    function carregarHistoricoPontos() {
-      if (!usuarioLogado || !usuarioLogado.id) {
-        console.log("Usuário não logado, não é possível carregar o histórico de pontos.");
-        return;
-      }
+   function carregarHistoricoPontos() {
+  if (!usuarioLogado || !usuarioLogado.id) {
+    console.log("Usuário não logado, não é possível carregar o histórico de pontos.");
+    return;
+  }
 
-      fetch(`http://localhost:3000/api/pontos/${usuarioLogado.id}`)
-        .then(response => response.json())
-        .then(data => {
-          const logList = document.getElementById('logList');
-          logList.innerHTML = ''; // Limpa a lista existente
-          if (data.status === 'sucesso' && data.pontos.length > 0) {
-            data.pontos.forEach(ponto => {
-              const li = document.createElement('li');
-              li.textContent = `Ponto batido em: ${ponto.data} às ${ponto.hora}`;
-              logList.appendChild(li);
-            });
-          } else {
-            const li = document.createElement('li');
-            li.textContent = 'Nenhum ponto registrado ainda.';
-            logList.appendChild(li);
-          }
-        })
-        .catch(error => {
-          console.error('Erro ao carregar histórico de pontos:', error);
-          const logList = document.getElementById('logList');
-          logList.innerHTML = '<li>Erro ao carregar histórico.</li>';
+  fetch(`http://localhost:3000/api/pontos/${usuarioLogado.id}`)
+    .then(response => response.json())
+    .then(data => {
+      const logList = document.getElementById('logList');
+      logList.innerHTML = ''; // Limpa a lista existente
+      if (data.status === 'sucesso' && data.pontos.length > 0) {
+        data.pontos.forEach(ponto => {
+          const li = document.createElement('li');
+          // Linha CORRIGIDA abaixo:
+          li.textContent = `Ponto batido em: ${ponto.data_ponto} às ${ponto.hora_ponto}`;
+          logList.appendChild(li);
         });
-    }
+      } else {
+        const li = document.createElement('li');
+        li.textContent = 'Nenhum ponto registrado ainda.';
+        logList.appendChild(li);
+      }
+    })
+    .catch(error => {
+      console.error('Erro ao carregar histórico de pontos:', error);
+      const li = document.createElement('li');
+      li.textContent = 'Erro ao carregar histórico.';
+      logList.innerHTML = '';
+      logList.appendChild(li);
+    });
+}
 
     function enviarSolicitacao() {
       const entrada = document.getElementById("horarioEntrada").value;

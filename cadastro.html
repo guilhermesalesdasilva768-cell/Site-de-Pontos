@@ -53,7 +53,7 @@
         .btn-cadastro {
             width: 100%;
             padding: 12px;
-            background: #28a745; /* Botão verde para cadastro */
+            background: #28a745;
             border: none;
             color: white;
             font-size: 1rem;
@@ -80,7 +80,7 @@
             color: red;
             font-size: 0.85em;
             margin-top: 5px;
-            display: none; /* Inicia oculto */
+            display: none;
         }
     </style>
 </head>
@@ -112,55 +112,35 @@
 
     <script>
         document.getElementById('cadastroForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault();
 
-            // Ocultar mensagens de erro anteriores
             document.getElementById('nomeError').style.display = 'none';
             document.getElementById('emailError').style.display = 'none';
             document.getElementById('senhaError').style.display = 'none';
 
-            const nome = document.getElementById('nomeCadastro').value.trim(); // .trim() remove espaços em branco do início e fim
+            const nome = document.getElementById('nomeCadastro').value.trim();
             const email = document.getElementById('emailCadastro').value.trim();
-            const senha = document.getElementById('senhaCadastro').value; // .trim() não aplicado intencionalmente para senhas, mas pode ser adicionado se necessário
-
-            // --- LINHAS DE DEBUG: VERIFICAR VALORES NO CONSOLE ---
-            console.log('--- Debug de Cadastro ---');
-            console.log('Valor capturado para Nome:', nome);
-            console.log('Valor capturado para Email:', email);
-            console.log('Valor capturado para Senha:', senha);
-            console.log('Payload que será enviado:', JSON.stringify({ nome, email, senha }));
-            console.log('-------------------------');
-            // --- FIM DAS LINHAS DE DEBUG ---
+            const senha = document.getElementById('senhaCadastro').value;
 
             let isValid = true;
-
-            // Validação de Nome
             if (!nome) {
                 document.getElementById('nomeError').style.display = 'block';
                 isValid = false;
             }
-
-            // Validação de E-mail
-            // Regex para validar formato básico de e-mail
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email || !emailRegex.test(email)) {
                 document.getElementById('emailError').style.display = 'block';
                 isValid = false;
             }
-
-            // Validação de Senha (mínimo 6 caracteres)
             if (!senha || senha.length < 6) {
                 document.getElementById('senhaError').style.display = 'block';
                 isValid = false;
             }
-
             if (!isValid) {
-                // Se alguma validação falhou, não envia a requisição
                 alert("Por favor, corrija os erros no formulário.");
-                return; // Impede que o fetch seja executado
+                return;
             }
 
-            // Se todas as validações passarem, envia a requisição para o backend
             fetch('http://localhost:3000/api/cadastrar', {
                 method: 'POST',
                 headers: {
@@ -169,33 +149,24 @@
                 body: JSON.stringify({ nome, email, senha })
             })
             .then(response => {
-                // --- TRATAMENTO DE ERROS MELHORADO: Tenta ler JSON, se falhar, lê como texto puro ---
-                if (!response.ok) { // Se a resposta não for OK (ex: status 400, 409, 500)
-                    return response.json().then(errorData => {
-                        // Tenta ler como JSON. Se tiver 'mensagem', usa.
-                        throw new Error(errorData.mensagem || 'Erro desconhecido do servidor (resposta JSON inválida ou sem mensagem).');
-                    }).catch(jsonError => {
-                        // Se falhar a leitura como JSON (ex: servidor enviou texto puro), tenta ler como texto
-                        console.error('Falha ao ler resposta como JSON, tentando como texto:', jsonError);
-                        return response.text().then(text => {
-                            throw new Error(text || 'Erro desconhecido do servidor (resposta de texto pura).');
-                        });
-                    });
-                }
-                return response.json(); // Se a resposta for OK (ex: status 200), lê como JSON
+                // AQUI ESTÁ A CORREÇÃO
+                return response.json().then(data => {
+                    if (!response.ok) {
+                        throw new Error(data.mensagem || 'Erro desconhecido do servidor.');
+                    }
+                    return data;
+                });
             })
             .then(data => {
                 if (data.status === 'sucesso') {
                     alert(data.mensagem + ' Você será redirecionado para a tela de login.');
-                    window.location.href = 'index.html'; // Redireciona para a tela de login
+                    window.location.href = 'index.html';
                 } else {
-                    // Isso pode acontecer se o servidor retornar 200 OK, mas com status: 'erro' (menos comum)
                     alert('Erro: ' + data.mensagem);
                 }
             })
             .catch(error => {
-                // Este catch pega erros de rede ou erros lançados nos .then() anteriores
-                console.error('Erro geral no cadastro:', error); // Loga o erro completo no console
+                console.error('Erro geral no cadastro:', error);
                 alert('Ocorreu um erro ao tentar cadastrar: ' + error.message);
             });
         });
