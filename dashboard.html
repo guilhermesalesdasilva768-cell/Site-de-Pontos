@@ -251,7 +251,7 @@
         msgPontoConfirmacao.style.opacity = 0;
         msgPontoConfirmacao.style.display = "none";
 
-        fetch("http://localhost:3000/api/ponto", {
+          fetch("https://meu-site4.onrender.com/api/ranking/pontos", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -333,7 +333,7 @@ fetch("https://meu-site4.onrender.com/api/ranking/pontos", {
     return;
   }
 
-  fetch(`http://localhost:3000/api/pontos/${usuarioLogado.id}`)
+   fetch(`https://meu-site4.onrender.com/api/pontos/${usuarioLogado.id}`)
     .then(response => response.json())
     .then(data => {
       const logList = document.getElementById('logList');

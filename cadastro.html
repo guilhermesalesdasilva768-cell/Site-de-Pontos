@@ -111,6 +111,8 @@
     </div>
 
     <script>
+        const API_URL = "https://meu-site4.onrender.com";
+
         document.getElementById('cadastroForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -141,22 +143,12 @@
                 return;
             }
 
-            fetch('https://meu-site3.onrender.com/api/cadastrar', {
+            fetch(`${API_URL}/api/cadastrar`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome, email, senha })
             })
-            .then(response => {
-                // AQUI ESTÁ A CORREÇÃO
-                return response.json().then(data => {
-                    if (!response.ok) {
-                        throw new Error(data.mensagem || 'Erro desconhecido do servidor.');
-                    }
-                    return data;
-                });
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.status === 'sucesso') {
                     alert(data.mensagem + ' Você será redirecionado para a tela de login.');
