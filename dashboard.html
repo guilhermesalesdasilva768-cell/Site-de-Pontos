@@ -268,25 +268,28 @@
                     msgPontoConfirmacao.style.opacity = 1;
                 }, 10);
 
-                // ➡️ CORRIGIDO: Agora o localStorage é atualizado e o backend é notificado.
-                usuarioLogado.bip = (usuarioLogado.bip || 0) + data.moedasAdicionadas;
-                localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
-                
-                // ✅ NOVO: Chamada para atualizar a pontuação no backend
-                fetch("http://localhost:3000/api/ranking/pontos", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ id: usuarioLogado.id, bip: usuarioLogado.bip })
-                })
-                .then(res => res.json())
-                .then(rankingData => {
-                    console.log('Ranking atualizado com sucesso:', rankingData.mensagem);
-                })
-                .catch(err => {
-                    console.error('Erro ao atualizar ranking:', err);
-                });
+            // Supondo que você tenha o objeto do usuário e a quantidade de BIP a adicionar
+const usuario = {
+    id: usuarioLogado.id,      
+    bip: (usuarioLogado.bip || 0) + data.moedasAdicionadas
+};
+
+// Envia a pontuação direto para o backend hospedado no Render
+fetch("https://meu-site4.onrender.com/api/ranking/pontos", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify(usuario)
+})
+.then(res => res.json())
+.then(rankingData => {
+    console.log('Ranking atualizado com sucesso:', rankingData.mensagem);
+})
+.catch(err => {
+    console.error('Erro ao atualizar ranking:', err);
+});
+
 
                 carregarHistoricoPontos();
 
