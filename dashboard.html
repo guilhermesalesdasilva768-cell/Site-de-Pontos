@@ -240,92 +240,57 @@
 
     setInterval(atualizarRelogio, 1000);
 
-   function baterPonto() {
-        if (!usuarioLogado || !usuarioLogado.id) {
-            alert("Erro: Usuário não logado ou ID do usuário não encontrado.");
-            return;
-        }
+ function baterPonto() {
+    if (!usuarioLogado || !usuarioLogado.id) {
+        alert("Erro: Usuário não logado ou ID do usuário não encontrado.");
+        return;
+    }
 
-        const msgPontoConfirmacao = document.getElementById("mensagemConfirmacaoPonto");
-        msgPontoConfirmacao.classList.remove('mensagem-ponto-confirmacao', 'mensagem-ponto-erro');
-        msgPontoConfirmacao.style.opacity = 0;
-        msgPontoConfirmacao.style.display = "none";
+    const msgPontoConfirmacao = document.getElementById("mensagemConfirmacaoPonto");
+    msgPontoConfirmacao.classList.remove('mensagem-ponto-confirmacao', 'mensagem-ponto-erro');
+    msgPontoConfirmacao.style.opacity = 0;
+    msgPontoConfirmacao.style.display = "none";
 
-          fetch("https://meu-site4.onrender.com/api/ranking/pontos", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ usuario_id: usuarioLogado.id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'sucesso') {
-                msgPontoConfirmacao.textContent = "✅ Ponto registrado e " + data.moedasAdicionadas + " moedas adicionadas!";
-                msgPontoConfirmacao.classList.add('mensagem-ponto-confirmacao');
-                msgPontoConfirmacao.style.display = "block";
-                setTimeout(() => {
-                    msgPontoConfirmacao.style.opacity = 1;
-                }, 10);
+    fetch("https://meu-site4.onrender.com/api/ponto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario_id: usuarioLogado.id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'sucesso') {
+            msgPontoConfirmacao.textContent = "✅ Ponto registrado e 5 moedas adicionadas!";
+            msgPontoConfirmacao.classList.add('mensagem-ponto-confirmacao');
+            msgPontoConfirmacao.style.display = "block";
+            setTimeout(() => { msgPontoConfirmacao.style.opacity = 1; }, 10);
 
-            // Supondo que você tenha o objeto do usuário e a quantidade de BIP a adicionar
-const usuario = {
-    id: usuarioLogado.id,      
-    bip: (usuarioLogado.bip || 0) + data.moedasAdicionadas
-};
-
-// Envia a pontuação direto para o backend hospedado no Render
-fetch("https://meu-site4.onrender.com/api/ponto", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ usuario_id: usuarioLogado.id })
-})
-.then(res => res.json())
-.then(rankingData => {
-    console.log('Ranking atualizado com sucesso:', rankingData.mensagem);
-})
-.catch(err => {
-    console.error('Erro ao atualizar ranking:', err);
-});
-
-
-                carregarHistoricoPontos();
-
-            } else {
-                msgPontoConfirmacao.textContent = "❌ Erro ao registrar ponto: " + data.mensagem;
-                msgPontoConfirmacao.classList.add('mensagem-ponto-erro');
-                msgPontoConfirmacao.style.display = "block";
-                setTimeout(() => {
-                    msgPontoConfirmacao.style.opacity = 1;
-                }, 10);
-            }
-            
-            setTimeout(() => {
-                msgPontoConfirmacao.style.opacity = 0;
-                setTimeout(() => {
-                    msgPontoConfirmacao.style.display = "none";
-                }, 500);
-            }, 5000);
-        })
-        .catch(err => {
-            msgPontoConfirmacao.textContent = "❌ Erro ao registrar ponto. Verifique o console para mais detalhes.";
+            carregarHistoricoPontos();
+        } else {
+            msgPontoConfirmacao.textContent = "❌ Erro ao registrar ponto: " + data.mensagem;
             msgPontoConfirmacao.classList.add('mensagem-ponto-erro');
             msgPontoConfirmacao.style.display = "block";
-            setTimeout(() => {
-                msgPontoConfirmacao.style.opacity = 1;
-            }, 10);
-            console.error(err);
+            setTimeout(() => { msgPontoConfirmacao.style.opacity = 1; }, 10);
+        }
 
-            setTimeout(() => {
-                msgPontoConfirmacao.style.opacity = 0;
-                setTimeout(() => {
-                    msgPontoConfirmacao.style.display = "none";
-                }, 500);
-            }, 5000);
-        });
-    }
+        setTimeout(() => {
+            msgPontoConfirmacao.style.opacity = 0;
+            setTimeout(() => { msgPontoConfirmacao.style.display = "none"; }, 500);
+        }, 5000);
+    })
+    .catch(err => {
+        msgPontoConfirmacao.textContent = "❌ Erro ao registrar ponto. Verifique o console para mais detalhes.";
+        msgPontoConfirmacao.classList.add('mensagem-ponto-erro');
+        msgPontoConfirmacao.style.display = "block";
+        setTimeout(() => { msgPontoConfirmacao.style.opacity = 1; }, 10);
+        console.error(err);
+
+        setTimeout(() => {
+            msgPontoConfirmacao.style.opacity = 0;
+            setTimeout(() => { msgPontoConfirmacao.style.display = "none"; }, 500);
+        }, 5000);
+    });
+}
+
 
    function carregarHistoricoPontos() {
   if (!usuarioLogado || !usuarioLogado.id) {
