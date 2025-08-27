@@ -275,12 +275,12 @@ const usuario = {
 };
 
 // Envia a pontuação direto para o backend hospedado no Render
-fetch("https://meu-site4.onrender.com/api/ranking/pontos", {
+fetch("https://meu-site4.onrender.com/api/ponto", {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
     },
-    body: JSON.stringify(usuario)
+    body: JSON.stringify({ usuario_id: usuarioLogado.id })
 })
 .then(res => res.json())
 .then(rankingData => {
