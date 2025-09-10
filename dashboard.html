@@ -304,13 +304,12 @@
       const logList = document.getElementById('logList');
       logList.innerHTML = ''; // Limpa a lista existente
       if (data.status === 'sucesso' && data.pontos.length > 0) {
-       data.pontos.forEach(ponto => {
+   data.pontos.forEach(ponto => {
   const li = document.createElement('li');
 
-  // pega o valor vindo do backend (ex: "2025-09-09 21:53:12")
-  const dataHora = new Date(ponto.data_hora);
+  // Ajusta o formato do timestamp do backend
+  const dataHora = new Date(ponto.data_hora.replace(" ", "T"));
 
-  // formata data e hora no padrão brasileiro
   const dataFormatada = dataHora.toLocaleDateString("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric"
   });
@@ -321,6 +320,7 @@
   li.textContent = `Ponto batido em: ${dataFormatada} às ${horaFormatada}`;
   logList.appendChild(li);
 });
+
       } else {
         const li = document.createElement('li');
         li.textContent = 'Nenhum ponto registrado ainda.';
