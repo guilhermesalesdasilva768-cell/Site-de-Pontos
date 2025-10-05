@@ -81,6 +81,12 @@
             margin-top: 5px;
             display: none;
         }
+        .success-message {
+            color: #388e3c;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -93,9 +99,9 @@
                 <div class="error-message" id="nomeError">O nome é obrigatório e não pode conter apenas espaços.</div>
             </div>
             <div class="form-group">
-                <label for="matriculaCadastro">Matrícula:</label>
-                <input type="text" id="matriculaCadastro" name="matricula" required>
-                <div class="error-message" id="matriculaError">Por favor, insira uma matrícula válida.</div>
+                <label for="matriculaCadastro">Matrícula (9 números):</label>
+                <input type="text" id="matriculaCadastro" name="matricula" maxlength="9" pattern="\d{9}" required>
+                <div class="error-message" id="matriculaError">A matrícula deve conter exatamente 9 números.</div>
             </div>
             <div class="form-group">
                 <label for="senhaCadastro">Senha:</label>
@@ -103,6 +109,7 @@
                 <div class="error-message" id="senhaError">A senha deve ter pelo menos 6 caracteres.</div>
             </div>
             <button type="submit" class="btn-cadastro">Cadastrar</button>
+            <div class="success-message" id="successMessage"></div>
         </form>
         <div class="login-link">
             Já tem conta? <a href="index.html">Fazer Login</a>
@@ -118,6 +125,7 @@
             document.getElementById('nomeError').style.display = 'none';
             document.getElementById('matriculaError').style.display = 'none';
             document.getElementById('senhaError').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
 
             const nome = document.getElementById('nomeCadastro').value.trim();
             const matricula = document.getElementById('matriculaCadastro').value.trim();
@@ -128,7 +136,7 @@
                 document.getElementById('nomeError').style.display = 'block';
                 isValid = false;
             }
-            if (!matricula || matricula.length < 3) {
+            if (!/^\d{9}$/.test(matricula)) {
                 document.getElementById('matriculaError').style.display = 'block';
                 isValid = false;
             }
@@ -137,7 +145,6 @@
                 isValid = false;
             }
             if (!isValid) {
-                alert("Por favor, corrija os erros no formulário.");
                 return;
             }
 
@@ -149,8 +156,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'sucesso') {
-                    alert(data.mensagem + ' Você será redirecionado para a tela de login.');
-                    window.location.href = 'index.html';
+                    document.getElementById('successMessage').textContent = data.mensagem + ' Redirecionando para o login...';
+                    document.getElementById('successMessage').style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
                 } else {
                     alert('Erro: ' + data.mensagem);
                 }
